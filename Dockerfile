@@ -1,11 +1,17 @@
-# Use OpenJDK 8 as the base image
-FROM openjdk:8
+# Stage 1: Build the app
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the built JAR file from the Maven build output
-COPY taxi-booking/target/taxi-booking-1.0-SNAPSHOT.jar app.jar
+COPY . .
 
-# Run the JAR file
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run the app
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+COPY --from=builder /app/server/target/*.jar app.jar
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
